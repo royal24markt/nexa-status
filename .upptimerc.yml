@@ -1,31 +1,166 @@
-# Change these first
-owner: upptime # Your GitHub organization or username, where this repository lives
-repo: upptime # The name of this repository
+# Upptime configuration for the public status page status.nexa-markt.de
+# ------------------------------------------------------------------------------------------------------------------
+# TEMPLATE — this file is copied into the separate PUBLIC repository `royal24markt/nexa-status` on server day
+# (docs/infrastructure/status-page.md §5). It lives here so it is reviewed like code. It contains NO secrets:
+# notification credentials are GitHub Actions *secrets* of the public repo, entered by the owner in the GitHub UI.
+#
+# Only public facts are in here: the three portal host names (already public through DNS/TLS certificates) and
+# the two probe paths, whose bodies carry no host names, versions or error texts (packages/web/src/server/health.ts).
+# Never add: the server IP, internal service names, the private repo name, e-mail passwords, tokens.
+#
+# Keys verified against https://upptime.js.org/docs/configuration/ (2026-11-11).
 
+owner: royal24markt # GitHub account that owns the public status repo
+repo: nexa-status # PUBLIC repo (GitHub Pages + Actions are free only for public repos)
+
+# The repo shows Upptime's own README; keep GitHub from rewriting description/topics/homepage of the repo
+skipDescriptionUpdate: true
+skipTopicsUpdate: true
+skipHomepageUpdate: true
+
+# Who gets assigned to the automatic "down" issues → GitHub notification e-mail to this account (no secret needed)
+assignees:
+  - royal24markt
+
+# Every 5 minutes is the fastest GitHub allows for scheduled workflows. Runs are best-effort (can be delayed).
+workflowSchedule:
+  uptime: "*/5 * * * *"
+  responseTime: "0 23 * * *"
+  graphs: "0 0 * * *"
+  staticSite: "0 1 * * *"
+  summary: "0 0 * * *"
+  updateTemplate: "0 0 * * *"
+  updates: "0 3 * * *"
+
+commitMessages:
+  commitAuthorName: "Nexa Status Bot"
+  commitAuthorEmail: "41898282+github-actions[bot]@users.noreply.github.com"
+
+# ------------------------------------------------------------------------------------------------------------------
+# Monitors. "Bereit" (= /api/ready) is what users feel: the portal answers AND reaches its database (503 otherwise).
+# "Erreichbar" (= /api/health) only says the process answers — it separates "app down" from "database down".
+# slug = stable id used in maintenance issues (`expectedDown: haendler-bereit`) and in the repo's history files.
+# ------------------------------------------------------------------------------------------------------------------
 sites:
-  - name: Google
-    url: https://www.google.com
-  - name: Wikipedia
-    url: https://en.wikipedia.org
-  - name: Hacker News
-    url: https://news.ycombinator.com
-  - name: Secret Site
-    url: $SECRET_SITE
+  - name: Händler-Portal
+    slug: haendler-bereit
+    url: https://haendler.nexa-markt.de/api/ready
+    expectedStatusCodes: [200]
+    maxResponseTime: 5000
+    __dangerous__body_down_if_text_missing: '"status":"ready"'
+  - name: Lieferanten-Portal
+    slug: lieferanten-bereit
+    url: https://lieferanten.nexa-markt.de/api/ready
+    expectedStatusCodes: [200]
+    maxResponseTime: 5000
+    __dangerous__body_down_if_text_missing: '"status":"ready"'
+  - name: Verwaltung
+    slug: verwaltung-bereit
+    url: https://verwaltung.nexa-markt.de/api/ready
+    expectedStatusCodes: [200]
+    maxResponseTime: 5000
+    __dangerous__body_down_if_text_missing: '"status":"ready"'
+  - name: Händler-Portal (Webserver)
+    slug: haendler-erreichbar
+    url: https://haendler.nexa-markt.de/api/health
+    expectedStatusCodes: [200]
+    maxResponseTime: 5000
+  - name: Lieferanten-Portal (Webserver)
+    slug: lieferanten-erreichbar
+    url: https://lieferanten.nexa-markt.de/api/health
+    expectedStatusCodes: [200]
+    maxResponseTime: 5000
+  - name: Verwaltung (Webserver)
+    slug: verwaltung-erreichbar
+    url: https://verwaltung.nexa-markt.de/api/health
+    expectedStatusCodes: [200]
+    maxResponseTime: 5000
+# TLS certificate expiry is NOT an Upptime feature: workflows/tls-expiry.yml (same public repo) checks it daily.
 
+# ------------------------------------------------------------------------------------------------------------------
+# Status website (GitHub Pages). German interface; the intro is bilingual German/Polish because the page has one
+# interface language. Incident posts are written in both languages (infra/status/templates/).
+# ------------------------------------------------------------------------------------------------------------------
 status-website:
-  # Add your custom domain name, or remove the `cname` line if you don't have a domain
-  # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  cname: demo.upptime.js.org
-  # baseUrl: /your-repo-name
-  logoUrl: https://raw.githubusercontent.com/upptime/upptime.js.org/master/static/img/icon.svg
-  name: Upptime
-  introTitle: "**Upptime** is the open-source uptime monitor and status page, powered entirely by GitHub."
-  introMessage: This is a sample status page which uses **real-time** data from our [GitHub repository](https://github.com/upptime/upptime). No server required — just GitHub Actions, Issues, and Pages. [**Get your own for free**](https://github.com/upptime/upptime)
+  cname: status.nexa-markt.de # needs DNS: CNAME status → royal24markt.github.io (status-page.md §4)
+  name: Nexa AI – Systemstatus
+  # logoUrl: https://status.nexa-markt.de/logo.svg  # optional: add the logo file to the public repo's assets/
+  introTitle: "Systemstatus / Status systemu"
+  introMessage: >-
+    Aktueller Zustand der Nexa-AI-Portale für Händler und Lieferanten. Diese Seite läuft unabhängig von unseren
+    Servern und bleibt auch bei einem Ausfall erreichbar. Fragen: info@nexa-markt.de<br><br>
+    Aktualny stan portali Nexa AI dla sprzedawców i dostawców. Ta strona działa niezależnie od naszych serwerów
+    i pozostaje dostępna również podczas awarii. Pytania: info@nexa-markt.de
+  theme: light
   navbar:
-    - title: Status
-      href: /
-    - title: GitHub
-      href: https://github.com/$OWNER/$REPO
+    - title: Händler-Portal
+      href: https://haendler.nexa-markt.de
+    - title: Lieferanten-Portal / Portal dostawcy
+      href: https://lieferanten.nexa-markt.de
+    - title: Kontakt
+      href: mailto:info@nexa-markt.de
 
-# Upptime also supports notifications, assigning issues, and more
-# See https://upptime.js.org/docs/configuration
+# German interface strings (keys: https://github.com/upptime/status-page/blob/master/i18n.yml).
+# A Polish set for a possible second page is in infra/status/upptime/i18n-pl.yml.
+i18n:
+  locale: de-DE
+  activeIncidents: "Aktuelle Störungen"
+  allSystemsOperational: "Alle Systeme funktionieren / Wszystkie systemy działają"
+  incidentReport: "Störung #$NUMBER – Bericht →"
+  activeIncidentSummary: "Eröffnet am $DATE, $POSTS Beiträge"
+  incidentTitle: "Störung $NUMBER – Details"
+  incidentDetails: "Details zur Störung"
+  incidentFixed: "Behoben"
+  incidentOngoing: "Andauernd"
+  incidentOpenedAt: "Eröffnet am"
+  incidentClosedAt: "Geschlossen am"
+  incidentViewOnGitHub: "Auf GitHub ansehen und abonnieren"
+  incidentCommentSummary: "Veröffentlicht am $DATE von $AUTHOR"
+  incidentBack: "← Zurück zu allen Störungen"
+  pastIncidents: "Vergangene Störungen"
+  pastIncidentsResolved: "Behoben in $MINUTES Minuten, $POSTS Beiträge"
+  liveStatus: "Live-Status"
+  overallUptime: "Verfügbarkeit gesamt: $UPTIME"
+  overallUptimeTitle: "Verfügbarkeit gesamt"
+  averageResponseTime: "Durchschnittliche Antwortzeit: $TIMEms"
+  averageResponseTimeTitle: "Durchschnittliche Antwortzeit"
+  sevelDayResponseTime: "Antwortzeit (7 Tage)"
+  responseTimeMs: "Antwortzeit (ms)"
+  up: "In Betrieb"
+  down: "Ausfall"
+  degraded: "Eingeschränkt"
+  ms: "ms"
+  loading: "Wird geladen"
+  navGitHub: "GitHub"
+  footer: "Betrieben mit [Upptime](https://upptime.js.org) · Quelltext dieser Seite: [GitHub]($REPO)"
+  rateLimitExceededTitle: "Zu viele Anfragen"
+  rateLimitExceededIntro: "Diese Seite fragt den Status direkt bei GitHub ab, und das stündliche Limit wurde erreicht. Bitte versuchen Sie es in einer Stunde erneut."
+  rateLimitExceededWhatDoesErrorMean: "Was bedeutet dieser Fehler?"
+  rateLimitExceededErrorMeaning: "GitHub erlaubt pro IP-Adresse 60 Anfragen pro Stunde ohne Anmeldung."
+  rateLimitExceededErrorHowCanFix: "Was kann ich tun?"
+  rateLimitExceededErrorFix: "Warten Sie eine Stunde. Der Status der Portale selbst ist davon nicht betroffen."
+  rateLimitExceededGeneratePAT: "Persönlichen GitHub-Token erstellen (optional)"
+  rateLimitExceededHasSet: "Sie haben einen persönlichen Token gesetzt."
+  rateLimitExceededRemoveToken: "Token entfernen"
+  rateLimitExceededGitHubPAT: "Persönlicher GitHub-Token"
+  rateLimitExceededCopyPastePAT: "Token einfügen"
+  rateLimitExceededSaveToken: "Token speichern"
+  errorTitle: "Ein Fehler ist aufgetreten"
+  errorIntro: "Der aktuelle Status konnte nicht geladen werden."
+  errorText: "Bitte versuchen Sie es in einigen Augenblicken erneut."
+  errorHome: "Zur Startseite"
+  pastScheduledMaintenance: "Vergangene Wartungen"
+  scheduledMaintenance: "Geplante Wartung"
+  scheduledMaintenanceSummaryStarted: "Begonnen am $DATE, Dauer $DURATION Minuten"
+  scheduledMaintenanceSummaryStarts: "Beginnt am $DATE, Dauer $DURATION Minuten"
+  startedAt: "Begonnen am"
+  startsAt: "Beginnt am"
+  duration: "Dauer"
+  durationMin: "$DURATION Minuten"
+  incidentCompleted: "Abgeschlossen"
+  incidentScheduled: "Geplant"
+  duration24H: "24 Std."
+  duration7D: "7 Tage"
+  duration30D: "30 Tage"
+  duration1Y: "1 Jahr"
+  durationAll: "Gesamt"
